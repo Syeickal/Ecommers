@@ -74,6 +74,8 @@ Fitur Tambahan (Untuk Jangka Panjang)
 + Mode Gelap (Dark Mode):
 
  - Pilihan untuk mengubah tema aplikasi menjadi gelap untuk kenyamanan mata.
--<img width="400" height="300" alt="Desain tanpa judul" src="https://github.com/user-attachments/assets/df4d1393-bb47-4f7a-842d-bee8bfc6b3ca" />
-)
+
+   
+<img width="400" height="300" alt="Desain tanpa judul" src="https://github.com/user-attachments/assets/df4d1393-bb47-4f7a-842d-bee8bfc6b3ca" />
+
  
