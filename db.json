@@ -1,0 +1,48 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "admin",
+      "password": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+      "fullName": "Administrator"
+    },
+    {
+      "id": "1751438306870",
+      "username": "bintang",
+      "password": "61ebd9e18817b967611007a3c5f52f29b0a199dca4d2bcba7ea217d3ea720632",
+      "fullName": "bintang kecil"
+    }
+  ],
+  "products": [
+    {
+      "id": "1",
+      "name": "Kaos Keren",
+      "price": 150000,
+      "image": "https://down-id.img.susercontent.com/file/43d5b5f3fc77710acdf80fb2dca8de39"
+    },
+    {
+      "id": "2",
+      "name": "Sepatu Sport",
+      "price": 250000,
+      "image": "https://down-id.img.susercontent.com/file/ph-11134201-23030-2m3dda6c6novf0"
+    },
+    {
+      "id": "3",
+      "name": "Sneakers White",
+      "price": 199.99,
+      "image": "https://tse4.mm.bing.net/th/id/OIP.s9dIsEV0Cc8xOc0KpwntdwHaHZ?pid=ImgDet&w=191&h=191&c=7"
+    },
+    {
+      "id": "4",
+      "name": "Tas Kulit Asli",
+      "price": 299,
+      "image": "https://tse4.mm.bing.net/th/id/OIP.hYXGbwhxmjosO94qFmU3rAHaHa?rs=1&pid=ImgDetMain"
+    },
+    {
+      "id": "5",
+      "name": "Hoodie Casual",
+      "price": 179.5,
+      "image": "https://th.bing.com/th/id/OIP.6_aYbv3ywU1IqAFH1kZzeQHaJ2?w=184&h=245&c=7&r=0&o=7&pid=1.7&rm=3"
+    }
+  ]
+}
