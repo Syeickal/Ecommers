@@ -4,83 +4,75 @@
 # Ecommerce
 Aplikasi e-commerce ini adalah platform jual beli online berbasis Flutter yang dirancang untuk memberikan pengalaman berbelanja yang modern dan interaktif. Dengan dukungan Firebase sebagai backend, aplikasi ini menawarkan fitur lengkap mulai dari pendaftaran dan login pengguna, penjelajahan produk dengan filter dan pencarian, hingga proses checkout yang mudah. Pengguna dapat menambahkan produk ke keranjang, memilih layanan pengiriman, dan melihat riwayat pesanan mereka. Untuk meningkatkan interaksi, aplikasi ini juga dilengkapi dengan sistem ulasan dan peringkat produk. Pengalaman pengguna diperkaya dengan berbagai animasi halus, seperti transisi antar halaman, efek saat menambahkan produk ke keranjang, dan notifikasi visual setelah pembayaran berhasil, menjadikan aplikasi ini tidak hanya fungsional tetapi juga menarik secara visual.
 
-# Fitur Aplikasi
-Berdasarkan analisis dari file yang Anda berikan, berikut adalah fitur-fitur yang ada di aplikasi Anda:
+# Fitur Esensial (Prioritas Utama)
++ Autentikasi Pengguna Lengkap:
 
-- Autentikasi Pengguna:
+ - Pendaftaran & Login: Sistem untuk pengguna membuat akun dan masuk menggunakan email dan kata sandi.
 
-Pengguna dapat mendaftar dan masuk ke aplikasi menggunakan email dan kata sandi melalui Firebase Auth.
+ - Login dengan Google/Facebook: Mempermudah pengguna untuk mendaftar/masuk dengan akun sosial media mereka.
 
-Terdapat fitur untuk keluar dari akun (logout).
+ - Lupa Kata Sandi: Fitur untuk mereset kata sandi melalui email.
 
-Aplikasi dapat memvalidasi apakah pengguna sudah masuk atau belum untuk mengakses fitur tertentu.
++ Manajemen Profil:
 
-- Manajemen Produk:
+ - Halaman profil di mana pengguna bisa melihat dan mengubah data pribadi (nama, email, no. telepon).
 
-Admin dapat menambah, mengedit, dan menghapus produk.
+ - Manajemen alamat untuk menyimpan beberapa alamat pengiriman.
 
-Produk memiliki informasi seperti nama, harga, kategori, deskripsi, gambar, dan peringkat.
++ Penyortiran & Penyaringan Produk (Sorting & Filtering):
 
-- Tampilan Produk dan Beranda:
+ - Di halaman daftar produk, tambahkan opsi untuk mengurutkan berdasarkan: Harga Termurah, Harga Termahal, Paling Populer, Terbaru.
 
-Halaman utama (beranda) menampilkan daftar produk, spanduk promosi yang dapat bergeser otomatis, dan filter berdasarkan kategori.
+ - Tambahkan fitur filter untuk menyaring produk berdasarkan: Kategori, Merek, atau Rentang Harga.
 
-Terdapat fitur pencarian untuk menemukan produk berdasarkan nama.
+ - Fitur untuk Meningkatkan Pengalaman Belanja
++ Daftar Keinginan (Wishlist):
 
-- Keranjang Belanja:
+ - Tombol "hati" ❤️ pada setiap produk untuk menyimpannya ke dalam daftar keinginan.
 
-Pengguna dapat menambahkan produk ke keranjang belanja.
+ - Halaman khusus untuk melihat semua produk yang sudah ditambahkan ke wishlist.
 
-Pengguna dapat melihat, memperbarui jumlah, dan menghapus produk dari keranjang.
++ Ulasan dan Peringkat Produk (Reviews & Ratings):
 
-Aplikasi akan menampilkan notifikasi saat produk berhasil ditambahkan ke keranjang.
+ - Pengguna yang sudah membeli bisa memberikan peringkat (bintang 1-5) dan menulis ulasan untuk produk tersebut.
 
-- Proses Pembelian (Checkout):
+ - Menampilkan rata-rata peringkat di halaman detail produk.
 
-Pengguna dapat melakukan proses pembelian langsung dari halaman detail produk atau dari keranjang belanja.
++ Sistem Keranjang yang Lebih Baik:
 
-Pengguna dapat memilih layanan pengiriman yang tersedia.
+ - Mengubah jumlah (kuantitas) barang langsung di halaman keranjang.
 
-Setelah pembayaran berhasil, pesanan akan dibuat dan keranjang akan dikosongkan.
+ - Menghapus item dari keranjang.
 
-- Riwayat Pesanan:
+Fitur Checkout & Transaksi
++ Proses Checkout Multi-Langkah:
 
-Pengguna dapat melihat riwayat pesanan yang telah mereka buat.
+ - Langkah 1: Alamat: Pengguna memilih alamat pengiriman.
 
-Setiap pesanan menampilkan detail produk, tanggal, status, dan total pembayaran.
+ - Langkah 2: Pengiriman: Pengguna memilih kurir (misal: JNE, J&T, SiCepat) dengan estimasi biaya dan waktu yang berbeda.
 
-- Ulasan dan Peringkat Produk:
+ - Langkah 3: Pembayaran: Pengguna memilih metode pembayaran (Transfer Bank, Virtual Account, E-Wallet seperti GoPay/OVO).
 
-Pengguna dapat memberikan ulasan dan peringkat untuk produk yang telah mereka beli.
+ - Langkah 4: Konfirmasi: Rangkuman pesanan sebelum menyelesaikan pembayaran.
 
-Aplikasi menampilkan rata-rata peringkat dan jumlah ulasan pada setiap produk.
++ Riwayat Pesanan (Order History):
 
-- Notifikasi:
+ - Halaman untuk melihat daftar semua transaksi yang pernah dilakukan.
 
-Terdapat halaman notifikasi yang mengelompokkan pemberitahuan berdasarkan waktu (Hari Ini, Minggu Ini, Lebih Lama).
+ - Detail untuk setiap pesanan, termasuk statusnya (Menunggu Pembayaran, Diproses, Dikirim, Selesai).
 
-Notifikasi dapat difilter berdasarkan status "semua", "belum dibaca", dan "sudah dibaca".
+Fitur Tambahan (Untuk Jangka Panjang)
++ Sistem Promo & Voucher:
 
-- Profil Pengguna:
+ - Fitur untuk memasukkan kode voucher di halaman checkout untuk mendapatkan potongan harga.
 
-Menampilkan nama dan email pengguna yang sedang masuk.
+ - Notifikasi (Push Notifications):
 
-Menyediakan menu untuk mengedit profil, alamat, dan pengaturan lainnya (meskipun fungsionalitasnya belum diimplementasikan sepenuhnya).
+ - Mengirim notifikasi kepada pengguna tentang status pesanan mereka (misal: "Pesanan Anda telah dikirim!").
 
-# Animasi yang Digunakan
-Aplikasi Anda menggunakan beberapa animasi untuk meningkatkan pengalaman pengguna:
+ Notifikasi untuk promo atau produk baru.
++ Mode Gelap (Dark Mode):
 
-- Animasi Transisi Halaman: Aplikasi menggunakan transisi fade (memudar) saat berpindah antar halaman.
-
-- Animasi Daftar dan Grid: Saat menampilkan daftar produk di beranda, aplikasi menggunakan animasi staggered grid dengan efek slide dan fade in untuk memunculkan setiap kartu produk secara bertahap.
-
-- Animasi Lottie:
-
-- pay_success.json: Animasi ini ditampilkan dalam sebuah dialog setelah pengguna berhasil melakukan pembayaran, memberikan konfirmasi visual yang menarik.
-
-- Animasi 'Terbang ke Keranjang': Saat pengguna menambahkan produk ke keranjang dari halaman beranda, sebuah partikel akan "terbang" dari tombol "tambah" menuju ikon keranjang belanja, memberikan umpan balik visual yang interaktif.
-
-- Animasi Pergantian AppBar: Terdapat transisi fade dan slide saat AppBar berubah dari tampilan normal ke tampilan pencarian.
-
+ - Pilihan untuk mengubah tema aplikasi menjadi gelap untuk kenyamanan mata.
 -<img width="400" height="300" alt="Desain tanpa judul" src="https://github.com/user-attachments/assets/df4d1393-bb47-4f7a-842d-bee8bfc6b3ca" />
-) 
+ 
