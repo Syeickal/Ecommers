@@ -1,12 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ecommerce_app/models/product.dart';
-import 'package:ecommerce_app/screens/detail_screen.dart';
 import 'package:ecommerce_app/services/wishlist_service.dart';
 import 'package:ecommerce_app/widgets/product_card.dart';
 import 'package:flutter/material.dart';
+import '../models/product.dart';
+import '../services/cart_service.dart';
 
 class WishlistScreen extends StatefulWidget {
-  const WishlistScreen({super.key});
+  const WishlistScreen({Key? key}) : super(key: key);
 
   @override
   State<WishlistScreen> createState() => _WishlistScreenState();
@@ -14,77 +13,68 @@ class WishlistScreen extends StatefulWidget {
 
 class _WishlistScreenState extends State<WishlistScreen> {
   final WishlistService _wishlistService = WishlistService();
+  final CartService _cartService = CartService();
+
+  void addToCart(Product product) async {
+    try {
+      await _cartService.addToCart(product);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${product.name} ditambahkan ke keranjang')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal menambahkan ke keranjang: ${e.toString()}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Daftar Keinginan'),
+        title: const Text('Wishlist Saya'),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _wishlistService.getWishlistStream(),
+      body: StreamBuilder<List<Product>>(
+        stream: _wishlistService.getWishlistProducts(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text("Terjadi kesalahan"));
+            return Center(child: Text('Terjadi kesalahan: ${snapshot.error}'));
           }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.favorite_border, size: 80, color: Colors.grey),
-                  SizedBox(height: 16),
+                  Icon(Icons.favorite_border, size: 100, color: Colors.grey.shade400),
+                  const SizedBox(height: 20),
                   Text(
-                    'Wishlist Anda kosong',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    'Wishlist Anda Kosong',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.grey.shade600),
                   ),
                 ],
               ),
             );
           }
 
-          final wishlistedDocs = snapshot.data!.docs;
+          final wishlistProducts = snapshot.data!;
 
           return GridView.builder(
             padding: const EdgeInsets.all(16.0),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
               childAspectRatio: 0.6,
             ),
-            itemCount: wishlistedDocs.length,
+            itemCount: wishlistProducts.length,
             itemBuilder: (context, index) {
-              final doc = wishlistedDocs[index];
-              final productData = doc.data() as Map<String, dynamic>;
-
-              final product = Product(
-                id: doc.id,
-                name: productData['name'] ?? 'No Name',
-                price: (productData['price'] ?? 0.0).toDouble(),
-                imageUrl: productData['imageUrl'] ?? '',
-                description: productData['description'] ?? 'No Description',
-                // ================= PERBAIKAN DI SINI =================
-                category: productData['category'] ?? 'Lainnya', // Tambahkan argumen category
-                // =====================================================
-              );
-
+              final product = wishlistProducts[index];
               return ProductCard(
                 product: product,
-                onAdd: () {
-                  // Tambahkan logika add to cart jika diperlukan
-                },
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DetailScreen(product: product),
-                    ),
-                  );
-                },
+                onAdd: () => addToCart(product),
               );
             },
           );

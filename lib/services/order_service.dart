@@ -7,56 +7,58 @@ class OrderService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  CollectionReference get _ordersCollection => _firestore
-      .collection('users')
-      .doc(_auth.currentUser?.uid)
-      .collection('orders');
-
-  Future<void> createOrder(
-      List<CartItem> cartItems, String paymentMethod) async {
-    if (_auth.currentUser?.uid == null) {
-      throw Exception("Pengguna tidak login.");
+  // --- PERUBAHAN DI SINI ---
+  Future<void> createOrder({
+    required List<CartItem> cartItems,
+    required double totalPrice,
+    required String shippingAddress,
+    required String paymentMethod, // <-- Tambahkan parameter ini
+  }) async {
+    // --- AKHIR PERUBAHAN ---
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception("Anda harus login untuk membuat pesanan.");
     }
-    if (cartItems.isEmpty) {
-      throw Exception("Keranjang kosong.");
-    }
 
-    final WriteBatch batch = _firestore.batch();
-    final DocumentReference orderRef = _ordersCollection.doc();
-    final double totalPrice =
-    cartItems.fold(0, (sum, item) => sum + (item.price * item.quantity));
+    final orderRef = _firestore.collection('orders').doc();
 
-    batch.set(orderRef, {
+    final itemsAsMaps = cartItems.map((item) => item.toOrderMap()).toList();
+
+    await orderRef.set({
+      'userId': user.uid,
+      'userEmail': user.email,
+      'orderId': orderRef.id,
+      'createdAt': Timestamp.now(),
       'totalPrice': totalPrice,
-      'timestamp': FieldValue.serverTimestamp(),
-      'status': 'Pesanan Diterima',
-      'paymentMethod': paymentMethod,
+      'shippingAddress': shippingAddress,
+      'status': 'Pending',
+      'items': itemsAsMaps,
+      'paymentMethod': paymentMethod, // <-- Simpan datanya di sini
     });
 
-    for (var item in cartItems) {
-      final DocumentReference itemRef =
-      orderRef.collection('items').doc(item.productId);
-      batch.set(itemRef, item.toJson());
-    }
+    final cartCollection = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('cart');
 
-    await batch.commit();
+    final cartSnapshot = await cartCollection.get();
+    for (var doc in cartSnapshot.docs) {
+      await doc.reference.delete();
+    }
   }
 
-  // PASTIKAN FUNGSI INI ADA DI DALAM FILE ANDA
   Stream<List<Order>> getOrdersStream() {
-    if (_auth.currentUser?.uid == null) {
+    final user = _auth.currentUser;
+    if (user == null) {
       return Stream.value([]);
     }
-
-    return _ordersCollection
-        .orderBy('timestamp', descending: true)
+    return _firestore
+        .collection('orders')
+        .where('userId', isEqualTo: user.uid)
+        .orderBy('createdAt', descending: true)
         .snapshots()
-        .asyncMap((snapshot) async {
-      // Kita perlu memproses setiap dokumen untuk mengambil sub-koleksi item-nya
-      final orders = await Future.wait(snapshot.docs.map((doc) {
-        return Order.fromFirestore(doc);
-      }).toList());
-      return orders;
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => Order.fromFirestore(doc)).toList();
     });
   }
 }

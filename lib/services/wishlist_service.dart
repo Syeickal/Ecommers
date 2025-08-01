@@ -1,54 +1,68 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/product.dart';
 
 class WishlistService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Mendapatkan UID pengguna yang sedang login
-  String? get _uid => _auth.currentUser?.uid;
-
-  // Mendapatkan referensi dokumen wishlist untuk produk tertentu
-  DocumentReference _getWishlistDocRef(String productId) {
-    if (_uid == null) {
-      throw Exception("Pengguna belum login");
+  // Mendapatkan stream wishlist untuk user yang sedang login
+  Stream<List<String>> getWishlistProductIds() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return Stream.value([]);
     }
     return _firestore
         .collection('users')
-        .doc(_uid)
+        .doc(user.uid)
         .collection('wishlist')
-        .doc(productId);
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => doc.id).toList());
   }
 
-  // Menambah/menghapus produk dari wishlist
-  Future<void> toggleWishlist(String productId, Map<String, dynamic> productData) async {
-    final docRef = _getWishlistDocRef(productId);
-    final doc = await docRef.get();
-
-    if (doc.exists) {
-      // Jika sudah ada, hapus dari wishlist
-      await docRef.delete();
-    } else {
-      // Jika belum ada, tambahkan ke wishlist beserta data produk
-      await docRef.set(productData);
+  // Mendapatkan data produk dari wishlist
+  Stream<List<Product>> getWishlistProducts() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return Stream.value([]);
     }
-  }
-
-  // Memeriksa apakah produk ada di wishlist (untuk update UI real-time)
-  Stream<bool> isWishlisted(String productId) {
-    if (_uid == null) return Stream.value(false);
-    return _getWishlistDocRef(productId).snapshots().map((snapshot) {
-      return snapshot.exists;
+    return _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('wishlist')
+        .snapshots()
+        .asyncMap((wishlistSnapshot) async {
+      List<Product> wishlistProducts = [];
+      for (var doc in wishlistSnapshot.docs) {
+        final productDoc = await _firestore.collection('products').doc(doc.id).get();
+        if (productDoc.exists) {
+          wishlistProducts.add(Product.fromFirestore(productDoc.data()!, productDoc.id));
+        }
+      }
+      return wishlistProducts;
     });
   }
 
-  // Mendapatkan semua item di wishlist
-  Stream<QuerySnapshot> getWishlistStream() {
-    if (_uid == null) return Stream.empty();
-    return _firestore
+
+  // Menambah atau menghapus produk dari wishlist
+  Future<void> toggleWishlist(String productId, Map<String, dynamic> productData) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception("Anda harus login untuk menggunakan wishlist.");
+    }
+    final wishlistRef = _firestore
         .collection('users')
-        .doc(_uid)
+        .doc(user.uid)
         .collection('wishlist')
-        .snapshots();
+        .doc(productId);
+
+    final doc = await wishlistRef.get();
+    if (doc.exists) {
+      // Jika sudah ada, hapus dari wishlist
+      await wishlistRef.delete();
+    } else {
+      // Jika belum ada, tambahkan ke wishlist
+      await wishlistRef.set(productData);
+    }
   }
 }

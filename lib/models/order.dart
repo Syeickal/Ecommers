@@ -1,64 +1,40 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-class OrderItem {
-  final String productId;
-  final String name;
-  final double price;
-  final String imageUrl;
-  final int quantity;
-
-  OrderItem({
-    required this.productId,
-    required this.name,
-    required this.price,
-    required this.imageUrl,
-    required this.quantity,
-  });
-
-  factory OrderItem.fromMap(Map<String, dynamic> map) {
-    return OrderItem(
-      productId: map['productId'] ?? '',
-      name: map['name'] ?? 'No Name',
-      price: (map['price'] ?? 0.0).toDouble(),
-      imageUrl: map['imageUrl'] ?? '',
-      quantity: map['quantity'] ?? 0,
-    );
-  }
-}
+import 'package:cloud_firestore/cloud_firestore.dart'; // <-- PERBAIKAN DI SINI
 
 class Order {
-  final String id;
+  final String orderId;
+  final String userId;
   final double totalPrice;
-  final Timestamp timestamp;
   final String status;
-  final String paymentMethod; // <-- TAMBAHKAN BARIS INI
-  final List<OrderItem> items;
+  final Timestamp createdAt;
+  final String shippingAddress;
+  final String paymentMethod;
+  final List<dynamic> items;
 
   Order({
-    required this.id,
+    required this.orderId,
+    required this.userId,
     required this.totalPrice,
-    required this.timestamp,
     required this.status,
-    required this.paymentMethod, // <-- TAMBAHKAN BARIS INI
+    required this.createdAt,
+    required this.shippingAddress,
+    required this.paymentMethod,
     required this.items,
   });
 
-  static Future<Order> fromFirestore(DocumentSnapshot doc) async {
+  factory Order.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-    QuerySnapshot itemsSnapshot = await doc.reference.collection('items').get();
-    List<OrderItem> orderItems = itemsSnapshot.docs
-        .map((itemDoc) =>
-        OrderItem.fromMap(itemDoc.data() as Map<String, dynamic>))
-        .toList();
-
     return Order(
-      id: doc.id,
+      orderId: data['orderId'] ?? '',
+      userId: data['userId'] ?? '',
       totalPrice: (data['totalPrice'] ?? 0.0).toDouble(),
-      timestamp: data['timestamp'] ?? Timestamp.now(),
       status: data['status'] ?? 'Unknown',
-      paymentMethod: data['paymentMethod'] ?? 'N/A', // <-- TAMBAHKAN BARIS INI
-      items: orderItems,
+      // Logika ini untuk menangani data lama yang mungkin tidak punya timestamp
+      createdAt: data['createdAt'] is Timestamp
+          ? data['createdAt']
+          : Timestamp.now(),
+      shippingAddress: data['shippingAddress'] ?? 'No Address',
+      paymentMethod: data['paymentMethod'] ?? 'Not Set',
+      items: data['items'] ?? [],
     );
   }
 }

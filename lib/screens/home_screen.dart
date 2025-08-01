@@ -1,12 +1,9 @@
-import 'package:ecommerce_app/screens/cart_screen.dart';
-import 'package:ecommerce_app/screens/categories_screen.dart';
-import 'package:ecommerce_app/screens/profile_screen.dart';
 import 'package:ecommerce_app/services/cart_service.dart';
 import 'package:flutter/material.dart';
-import '../services/product_service.dart';
 import '../models/product.dart';
-import 'add_product_screen.dart';
+import '../services/product_service.dart';
 import '../widgets/product_card.dart';
+import 'add_product_screen.dart';
 import 'detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,7 +12,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
   List<Product> allProducts = [];
   List<Product> filteredProducts = [];
   bool _isLoading = true;
@@ -23,24 +19,12 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController searchController = TextEditingController();
   final CartService _cartService = CartService();
 
+  // Daftar gambar banner
   final List<String> imgList = [
     'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80',
     'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80',
     'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1000&q=80',
   ];
-
-  static final List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(),
-    CategoriesScreen(),
-    CartScreen(),
-    ProfileScreen(),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   @override
   void initState() {
@@ -99,12 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${product.name} ditambahkan ke keranjang'),
-          action: SnackBarAction(
-            label: 'Lihat',
-            onPressed: () {
-            },
-          ),
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
     } catch (e) {
@@ -116,49 +95,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_selectedIndex != 0) {
-      return Scaffold(
-        body: _widgetOptions.elementAt(_selectedIndex),
-        bottomNavigationBar: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Beranda',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.category_outlined),
-              activeIcon: Icon(Icons.category),
-              label: 'Kategori',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart_outlined),
-              activeIcon: Icon(Icons.shopping_cart),
-              label: 'Keranjang',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profil',
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: Theme.of(context).primaryColor,
-          unselectedItemColor: Colors.grey,
-          showUnselectedLabels: true,
-        ),
-      );
-    }
-    return Scaffold(
+    // ==== BAGIAN INI DIHAPUS SEMUA ====
+    // Tidak ada lagi pengecekan _selectedIndex
+    // Tidak ada lagi return Scaffold
+    // Langsung return widget kontennya
+    // ==================================
+
+    return Scaffold( // Kita tetap butuh Scaffold, tapi HANYA SATU untuk halaman ini
       appBar: AppBar(
-        title: Text('E-Commerce'),
-        centerTitle: false,
+        title: const Text('E-Commerce'),
+        centerTitle: false, // Biar judul di kiri
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add_circle_outline),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => AddProductScreen()))
                   .then((_) => loadProducts());
@@ -168,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
         onRefresh: loadProducts,
         child: CustomScrollView(
@@ -180,10 +129,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   controller: searchController,
                   decoration: InputDecoration(
                     hintText: 'Cari produk, merek, dan lainnya...',
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search),
                     suffixIcon: searchController.text.isNotEmpty
                         ? IconButton(
-                      icon: Icon(Icons.clear),
+                      icon: const Icon(Icons.clear),
                       onPressed: () {
                         searchController.clear();
                       },
@@ -195,45 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             if (searchController.text.isEmpty)
               SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 200,
-                      child: PageView.builder(
-                        itemCount: imgList.length,
-                        onPageChanged: (index) {
-                          setState(() {
-                            _currentBannerIndex = index;
-                          });
-                        },
-                        itemBuilder: (context, index) {
-                          return Card(
-                            margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                            clipBehavior: Clip.antiAlias,
-                            child: Image.network(imgList[index], fit: BoxFit.cover),
-                          );
-                        },
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: imgList.asMap().entries.map((entry) {
-                        return Container(
-                          width: 8.0,
-                          height: 8.0,
-                          margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: (Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.black)
-                                .withOpacity(_currentBannerIndex == entry.key ? 0.9 : 0.4),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
+                child: _buildBanner(context),
               ),
             SliverToBoxAdapter(
               child: Padding(
@@ -246,75 +157,93 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SliverPadding(
               padding: const EdgeInsets.all(16.0),
-              sliver: filteredProducts.isEmpty
-                  ? SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 48.0),
-                    child: Text("Produk tidak ditemukan."),
-                  ),
-                ),
-              )
-                  : SliverGrid(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.6,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    final product = filteredProducts[index];
-                    return ProductCard(
-                      product: product,
-                      onAdd: () => addToCart(product),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailScreen(product: product),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  childCount: filteredProducts.length,
-                ),
-              ),
+              sliver: _buildProductGrid(),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Beranda',
+      // ==== BOTTOMNAVIGATIONBAR DIHAPUS DARI SINI ====
+    );
+  }
+
+  Widget _buildBanner(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 200,
+          child: PageView.builder(
+            itemCount: imgList.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentBannerIndex = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                clipBehavior: Clip.antiAlias,
+                child: Image.network(imgList[index], fit: BoxFit.cover),
+              );
+            },
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category_outlined),
-            activeIcon: Icon(Icons.category),
-            label: 'Kategori',
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: imgList.asMap().entries.map((entry) {
+            return Container(
+              width: 8.0,
+              height: 8.0,
+              margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: (Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black)
+                    .withOpacity(_currentBannerIndex == entry.key ? 0.9 : 0.4),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProductGrid() {
+    if (filteredProducts.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 48.0),
+            child: Text("Produk tidak ditemukan."),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            activeIcon: Icon(Icons.shopping_cart),
-            label: 'Keranjang',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profil',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
+        ),
+      );
+    }
+
+    return SliverGrid(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 0.6,
+      ),
+      delegate: SliverChildBuilderDelegate(
+            (context, index) {
+          final product = filteredProducts[index];
+          return ProductCard(
+            product: product,
+            onAdd: () => addToCart(product),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailScreen(product: product),
+                ),
+              );
+            },
+          );
+        },
+        childCount: filteredProducts.length,
       ),
     );
   }

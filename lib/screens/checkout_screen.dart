@@ -1,91 +1,88 @@
 import 'package:ecommerce_app/models/cart_item.dart';
-import 'package:ecommerce_app/services/cart_service.dart';
+import 'package:ecommerce_app/screens/success_screen.dart';
 import 'package:ecommerce_app/services/order_service.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+
+// Class sederhana untuk merepresentasikan metode pembayaran
+class PaymentMethod {
+  final String name;
+  final String asset;
+
+  PaymentMethod({required this.name, required this.asset});
+}
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartItem> cartItems;
-  const CheckoutScreen({super.key, required this.cartItems});
+  const CheckoutScreen({Key? key, required this.cartItems}) : super(key: key);
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String? _selectedPaymentMethod;
+  final _formKey = GlobalKey<FormState>();
+  final _addressController = TextEditingController();
+  final OrderService _orderService = OrderService();
   bool _isLoading = false;
 
-  final OrderService _orderService = OrderService();
-  final CartService _cartService = CartService();
-
-  final List<String> _paymentMethods = [
-    'Transfer Bank',
-    'E-Wallet (OVO, GoPay, Dana)',
-    'COD (Bayar di Tempat)',
-    'Kartu Kredit/Debit'
+  // --- PERBAIKAN UTAMA DI SINI ---
+  // Gunakan path lengkap dan benar untuk setiap aset
+  final List<PaymentMethod> _paymentMethods = [
+    PaymentMethod(name: 'Transfer Bank', asset: 'assets/images/bca.png'),
+    PaymentMethod(name: 'GoPay', asset: 'assets/images/gopay.png'),
+    PaymentMethod(name: 'OVO', asset: 'assets/images/ovo.png'),
+    PaymentMethod(name: 'DANA', asset: 'assets/images/dana.png'),
+    PaymentMethod(name: 'Bayar di Tempat (COD)', asset: 'assets/images/cod.png'),
   ];
+  PaymentMethod? _selectedPaymentMethod;
 
-  double get _totalPrice {
-    return widget.cartItems
-        .fold(0, (sum, item) => sum + (item.price * item.quantity));
+  @override
+  void initState() {
+    super.initState();
+    if (_paymentMethods.isNotEmpty) {
+      _selectedPaymentMethod = _paymentMethods[0];
+    }
+  }
+  // --- AKHIR PERBAIKAN ---
+
+  void _placeOrder() async {
+    if (_formKey.currentState!.validate() && _selectedPaymentMethod != null) {
+      setState(() => _isLoading = true);
+      try {
+        await _orderService.createOrder(
+          cartItems: widget.cartItems,
+          totalPrice: _calculateTotalPrice(),
+          shippingAddress: _addressController.text,
+          paymentMethod: _selectedPaymentMethod!.name,
+        );
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const SuccessScreen()),
+              (route) => false,
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuat pesanan: ${e.toString()}')),
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    } else if (_selectedPaymentMethod == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Silakan pilih metode pembayaran.')),
+      );
+    }
   }
 
-  Future<void> _placeOrder() async {
-    if (_selectedPaymentMethod == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silakan pilih metode pembayaran')),
-      );
-      return;
-    }
+  double _calculateTotalPrice() {
+    return widget.cartItems.fold(0, (sum, item) => sum + (item.price * item.quantity));
+  }
 
-    setState(() => _isLoading = true);
-
-    try {
-      await _orderService.createOrder(widget.cartItems, _selectedPaymentMethod!);
-      await _cartService.clearCart();
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Lottie.asset('assets/succes.json', width: 150, height: 150, repeat: false),
-                  const SizedBox(height: 20),
-                  Text("Pesanan Berhasil!", textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: 8),
-                  Text("Terima kasih telah berbelanja.", textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium),
-                ],
-              ),
-              actions: <Widget>[
-                Center(
-                  child: TextButton(
-                    child: const Text("OK", style: TextStyle(fontSize: 16)),
-                    onPressed: () {
-                      // Kembali ke halaman utama (root)
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                    },
-                  ),
-                )
-              ],
-            );
-          },
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal membuat pesanan: ${e.toString()}')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+  @override
+  void dispose() {
+    _addressController.dispose();
+    super.dispose();
   }
 
   @override
@@ -94,49 +91,119 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       appBar: AppBar(
         title: const Text('Checkout'),
       ),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        children: [
-          Text('Ringkasan Pesanan', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          ...widget.cartItems.map((item) {
-            return ListTile(
-              title: Text('${item.name} (x${item.quantity})'),
-              trailing: Text('Rp. ${(item.price * item.quantity).toStringAsFixed(0)}'),
-            );
-          }),
-          const Divider(),
-          ListTile(
-            title: Text('Total Harga', style: const TextStyle(fontWeight: FontWeight.bold)),
-            trailing: Text('Rp. ${_totalPrice.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Ringkasan Pesanan', style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 16),
+              _buildOrderSummary(),
+              const Divider(height: 32),
+              Text('Alamat Pengiriman', style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _addressController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: 'Masukkan alamat lengkap Anda...',
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Alamat tidak boleh kosong';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 32),
+              Text('Metode Pembayaran', style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 8),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _paymentMethods.length,
+                itemBuilder: (context, index) {
+                  final method = _paymentMethods[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    child: RadioListTile<PaymentMethod>(
+                      value: method,
+                      groupValue: _selectedPaymentMethod,
+                      onChanged: (PaymentMethod? value) {
+                        setState(() {
+                          _selectedPaymentMethod = value;
+                        });
+                      },
+                      title: Text(method.name),
+                      // Panggil aset langsung dari `method.asset`
+                      secondary: Image.asset(method.asset, width: 40),
+                      activeColor: Theme.of(context).primaryColor,
+                    ),
+                  );
+                },
+              )
+            ],
           ),
-          const SizedBox(height: 24),
-          Text('Pilih Metode Pembayaran', style: Theme.of(context).textTheme.titleLarge),
-          ..._paymentMethods.map((method) {
-            return RadioListTile<String>(
-              title: Text(method),
-              value: method,
-              groupValue: _selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  _selectedPaymentMethod = value;
-                });
-              },
-            );
-          }),
+        ),
+      ),
+      bottomSheet: _buildBottomSheet(),
+    );
+  }
+
+  Widget _buildOrderSummary() {
+    return Card(
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: widget.cartItems.length,
+        itemBuilder: (context, index) {
+          final item = widget.cartItems[index];
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundImage: NetworkImage(item.imageUrl),
+            ),
+            title: Text(item.name),
+            subtitle: Text('${item.quantity} x Rp. ${item.price.toStringAsFixed(0)}'),
+            trailing: Text('Rp. ${(item.quantity * item.price).toStringAsFixed(0)}'),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBottomSheet() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.1), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, -3)),
         ],
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : ElevatedButton(
-          onPressed: _placeOrder,
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Total Bayar:'),
+              Text(
+                'Rp. ${_calculateTotalPrice().toStringAsFixed(0)}',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Theme.of(context).primaryColor),
+              ),
+            ],
           ),
-          child: const Text('Buat Pesanan'),
-        ),
+          ElevatedButton.icon(
+            onPressed: _isLoading ? null : _placeOrder,
+            icon: _isLoading ? const SizedBox.shrink() : const Icon(Icons.lock_outline),
+            label: _isLoading
+                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white,))
+                : const Text('Buat Pesanan'),
+          ),
+        ],
       ),
     );
   }

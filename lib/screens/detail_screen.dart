@@ -5,145 +5,133 @@ import 'package:flutter/material.dart';
 
 class DetailScreen extends StatefulWidget {
   final Product product;
-  const DetailScreen({super.key, required this.product});
+
+  const DetailScreen({Key? key, required this.product}) : super(key: key);
 
   @override
-  State<DetailScreen> createState() => _DetailScreenState();
+  _DetailScreenState createState() => _DetailScreenState();
 }
 
 class _DetailScreenState extends State<DetailScreen> {
-  final WishlistService _wishlistService = WishlistService();
   final CartService _cartService = CartService();
+  final WishlistService _wishlistService = WishlistService(); // Tambahkan service
 
-  // Untuk galeri gambar, kita akan duplikat gambar utama untuk demo
-  late final List<String> galleryImages;
-
-  @override
-  void initState() {
-    super.initState();
-    galleryImages = [
-      widget.product.imageUrl,
-      // Tambahkan gambar lain jika ada, atau duplikat untuk efek galeri
-      'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500',
-      'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500',
-    ];
-  }
-
-  void addToCart() {
+  void _addToCart() {
     _cartService.addToCart(widget.product);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${widget.product.name} ditambahkan ke keranjang')),
+      SnackBar(
+        content: Text('${widget.product.name} ditambahkan ke keranjang'),
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // AppBar dengan gambar produk
-          SliverAppBar(
-            expandedHeight: 300.0,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: PageView.builder(
-                itemCount: galleryImages.length,
-                itemBuilder: (context, index) {
-                  return Image.network(
-                    galleryImages[index],
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, size: 100),
-                  );
+      appBar: AppBar(
+        title: Text(widget.product.name),
+        // --- PERBAIKAN & PENAMBAHAN TOMBOL WISHLIST ---
+        actions: [
+          StreamBuilder<List<String>>(
+            stream: _wishlistService.getWishlistProductIds(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const IconButton(
+                  icon: Icon(Icons.favorite_border),
+                  onPressed: null,
+                );
+              }
+              final isWishlisted = snapshot.data!.contains(widget.product.id);
+              return IconButton(
+                icon: Icon(
+                  isWishlisted ? Icons.favorite : Icons.favorite_border,
+                  color: Colors.redAccent,
+                ),
+                onPressed: () {
+                  _wishlistService.toggleWishlist(
+                      widget.product.id, widget.product.toJson());
                 },
-              ),
-            ),
+              );
+            },
           ),
-          // Konten detail produk
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Image.network(
+              widget.product.imageUrl,
+              fit: BoxFit.cover,
+              height: 300,
+              errorBuilder: (context, error, stackTrace) {
+                return const SizedBox(
+                  height: 300,
+                  child: Center(
+                      child: Icon(Icons.broken_image,
+                          size: 60, color: Colors.grey)),
+                );
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Nama Produk
                   Text(
                     widget.product.name,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  // Harga
+                  Text(
+                    'Kategori: ${widget.product.category}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     'Rp. ${widget.product.price.toStringAsFixed(0)}',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: Theme.of(context).primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  // Deskripsi
+                  const Divider(height: 32),
                   Text(
-                    "Deskripsi",
+                    'Deskripsi Produk',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     widget.product.description,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey[700]),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
                   ),
                 ],
               ),
             ),
-          )
-        ],
+          ],
+        ),
       ),
-      // Bottom Navigation Bar untuk tombol aksi
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 1,
-              blurRadius: 5,
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
             )
           ],
         ),
-        child: Row(
-          children: [
-            // Tombol Wishlist
-            StreamBuilder<bool>(
-              stream: _wishlistService.isWishlisted(widget.product.id),
-              builder: (context, snapshot) {
-                final isWishlisted = snapshot.data ?? false;
-                return IconButton.outlined(
-                  onPressed: () {
-                    _wishlistService.toggleWishlist(widget.product.id, widget.product.toJson());
-                  },
-                  icon: Icon(
-                    isWishlisted ? Icons.favorite : Icons.favorite_border,
-                    color: isWishlisted ? Colors.red : Colors.grey,
-                  ),
-                  style: IconButton.styleFrom(
-                      side: BorderSide(color: Colors.grey.shade300),
-                      minimumSize: Size(50, 50)
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 16),
-            // Tombol Tambah ke Keranjang
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: addToCart,
-                icon: const Icon(Icons.add_shopping_cart),
-                label: const Text("Tambah ke Keranjang"),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
-          ],
+        child: ElevatedButton.icon(
+          onPressed: _addToCart,
+          icon: const Icon(Icons.add_shopping_cart),
+          label: const Text('Tambah ke Keranjang'),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
         ),
       ),
     );

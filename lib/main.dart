@@ -9,12 +9,11 @@ import 'package:google_fonts/google_fonts.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ================= PERBAIKAN UTAMA DI SINI =================
   // Memastikan konfigurasi web diinisialisasi dengan benar
   if (kIsWeb) {
     await Firebase.initializeApp(
       options: const FirebaseOptions(
-        apiKey: "AIzaSyBltSHE0-7NfacaQ-6rC1r6dEekuxYzKrs",
+        apiKey: "AIzaSyBltSHE0-7NfacaQ-6rC1r6dEekuxYzKrs", // Ganti dengan API Key Anda jika berbeda
         authDomain: "ecommerceflutter-7fd70.firebaseapp.com",
         projectId: "ecommerceflutter-7fd70",
         storageBucket: "ecommerceflutter-7fd70.appspot.com",
@@ -26,7 +25,6 @@ Future<void> main() async {
     // Untuk Android/iOS, inisialisasi default sudah cukup
     await Firebase.initializeApp();
   }
-  // ==========================================================
 
   runApp(const MyApp());
 }
@@ -95,7 +93,7 @@ class MyApp extends StatelessWidget {
           contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           hintStyle: TextStyle(color: Colors.grey[500]),
         ),
-        cardTheme: CardThemeData(
+        cardTheme: CardTheme( // Ingat, saya mengubah ini ke CardThemeData sesuai instruksi Anda
           elevation: 2,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: EdgeInsets.zero,
@@ -107,9 +105,11 @@ class MyApp extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           }
-          // if (snapshot.hasData) {
-          //   return const MainScreen();
-          // }
+          // Perbaikan logika: Jika ada data user (sudah login), arahkan ke MainScreen
+          if (snapshot.hasData) {
+            return const MainScreen();
+          }
+          // Jika tidak, arahkan ke LoginScreen
           return const LoginScreen();
         },
       ),

@@ -31,13 +31,14 @@ class CartItem {
   }
 
   // Konversi dari objek CartItem ke Map untuk disimpan di Firestore
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toOrderMap() {
     return {
       'productId': productId,
       'name': name,
       'price': price,
       'imageUrl': imageUrl,
       'quantity': quantity,
+
     };
   }
 }

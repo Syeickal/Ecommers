@@ -11,44 +11,128 @@ class OrderDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detail Pesanan'),
+        title: const Text('Detail Pesanan'),
       ),
-      body: ListView(
-        padding: EdgeInsets.all(16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle(context, 'Informasi Pesanan'),
+            _buildInfoCard([
+              _buildInfoRow('Order ID', order.orderId),
+              _buildInfoRow('Tanggal', DateFormat('d MMMM yyyy, HH:mm').format(order.createdAt.toDate())),
+              // --- TAMBAHKAN TAMPILAN METODE PEMBAYARAN ---
+              _buildInfoRow('Metode Pembayaran', order.paymentMethod),
+              // --- AKHIR PENAMBAHAN ---
+              _buildInfoRow('Status', order.status, color: Colors.orange.shade700),
+            ]),
+            const SizedBox(height: 24),
+            _buildSectionTitle(context, 'Alamat Pengiriman'),
+            _buildInfoCard([
+              Text(order.shippingAddress, style: const TextStyle(height: 1.5)),
+            ]),
+            const SizedBox(height: 24),
+            _buildSectionTitle(context, 'Rincian Produk'),
+            _buildProductList(context),
+          ],
+        ),
+      ),
+      bottomSheet: _buildTotalSection(context),
+    );
+  }
+
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(List<Widget> children) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, {Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Informasi Ringkas Pesanan
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('ID Pesanan: #${order.id}', style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 8),
-                  Text('Tanggal: ${DateFormat('d MMMM yyyy, HH:mm').format(order.timestamp.toDate())}'),
-                  SizedBox(height: 8),
-                  Text('Status: ${order.status}'),
-                  SizedBox(height: 8),
-                  Text('Total: Rp. ${order.totalPrice.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                ],
-              ),
+          Text(label, style: TextStyle(color: Colors.grey.shade600)),
+          Text(
+            value,
+            style: TextStyle(fontWeight: FontWeight.bold, color: color),
+            textAlign: TextAlign.end,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductList(BuildContext context) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: order.items.length,
+        separatorBuilder: (context, index) => Divider(height: 1, indent: 16, endIndent: 16,),
+        itemBuilder: (context, index) {
+          final item = order.items[index];
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundImage: NetworkImage(item['imageUrl'] ?? ''),
+            ),
+            title: Text(item['name'] ?? 'Nama Produk Tidak Tersedia'),
+            subtitle: Text(
+                '${item['quantity']} x Rp. ${NumberFormat('#,##0').format(item['price'])}'),
+            trailing: Text(
+              'Rp. ${NumberFormat('#,##0').format(item['quantity'] * item['price'])}',
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTotalSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 5,
+              offset: const Offset(0, -2))
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Total Pesanan', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Rp. ${NumberFormat('#,##0').format(order.totalPrice)}',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).primaryColor,
             ),
           ),
-          SizedBox(height: 20),
-          // Daftar Item
-          Text('Item yang Dipesan', style: Theme.of(context).textTheme.titleLarge),
-          SizedBox(height: 10),
-          ...order.items.map((item) {
-            return Card(
-              margin: EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: Image.network(item.imageUrl, width: 50, height: 50, fit: BoxFit.cover),
-                title: Text(item.name),
-                subtitle: Text('${item.quantity} x Rp. ${item.price.toStringAsFixed(0)}'),
-                trailing: Text('Rp. ${(item.quantity * item.price).toStringAsFixed(0)}'),
-              ),
-            );
-          }).toList(),
         ],
       ),
     );

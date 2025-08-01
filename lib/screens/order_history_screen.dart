@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
-  const OrderHistoryScreen({super.key});
+  const OrderHistoryScreen({Key? key}) : super(key: key);
 
   @override
   _OrderHistoryScreenState createState() => _OrderHistoryScreenState();
@@ -20,8 +20,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       appBar: AppBar(
         title: const Text('Riwayat Pesanan'),
       ),
+      // StreamBuilder sekarang akan menerima tipe yang benar (Stream<List<Order>>)
       body: StreamBuilder<List<Order>>(
-        stream: _orderService.getOrdersStream(), // Eror terjadi di sini
+        stream: _orderService.getOrdersStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -34,10 +35,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.history_toggle_off, size: 80, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  Text('Belum ada riwayat pesanan.',
-                      style: Theme.of(context).textTheme.titleLarge),
+                  Icon(Icons.history_toggle_off, size: 100, color: Colors.grey.shade400),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Belum Ada Pesanan',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.grey.shade600),
+                  ),
                 ],
               ),
             );
@@ -46,21 +49,23 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           final orders = snapshot.data!;
 
           return ListView.builder(
+            padding: const EdgeInsets.all(8.0),
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final order = orders[index];
               return Card(
-                margin:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
                 child: ListTile(
-                  title: Text('Pesanan #${order.id.substring(0, 8)}'),
+                  title: Text('Order ID: ${order.orderId.substring(0, 8)}...'),
                   subtitle: Text(
-                    DateFormat('d MMMM yyyy, HH:mm')
-                        .format(order.timestamp.toDate()),
+                    'Tanggal: ${DateFormat('d MMMM yyyy, HH:mm').format(order.createdAt.toDate())}',
                   ),
                   trailing: Text(
-                    'Rp. ${order.totalPrice.toStringAsFixed(0)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    'Rp ${NumberFormat('#,##0', 'id_ID').format(order.totalPrice)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
                   ),
                   onTap: () {
                     Navigator.push(
